@@ -1,0 +1,25 @@
+<launch>
+
+  <node pkg="leishen_lslidar_c16_driver" type="leishen_lslidar_c16_driver_node" name="leishen_lslidar_c16_driver_node" output="screen">
+    <param name="frame_id" value="laser_link"/>
+    <param name="device_ip" value="192.168.1.200"/>
+    <param name="device_port" value="2368"/>
+    <param name="use_gps" value="false"/>
+  </node>
+
+  <node pkg="leishen_lslidar_c16_decoder" type="leishen_lslidar_c16_decoder_node" name="leishen_lslidar_c16_decoder_node" output="screen">
+    <param name="child_frame_id" value="world"/>
+    <remap from="/point_raw" to="/point_raw"/>
+    <param name="point_num" value="2000"/>
+    <param name="channel_num" value="8"/>
+    <param name="angle_disable_min" value="0"/>
+    <param name="angle_disable_max" value="0"/>
+    <param name="min_range" value="0.15"/>
+    <param name="max_range" value="150.0"/>
+    <param name="frequency" value="10.0"/>
+    <param name="publish_point_cloud" value="true"/>
+    <param name="publish_channels" value="true"/>
+  </node>
+  
+
+</launch>

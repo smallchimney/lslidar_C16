@@ -3,6 +3,11 @@
 ## version track
 Author: Yutong
 
+### Ver2.0 Yutong
+ - Add GPS timestamp to PointCloud2 message
+    There is timestamp field in PointCloud2/fields part
+ - Using apollo/drivers/ namespace to adapt to apollo interface
+
 ### ver1.1  Yutong
 Using new message type to distinguish different channel data
 topic name: scan_channel
