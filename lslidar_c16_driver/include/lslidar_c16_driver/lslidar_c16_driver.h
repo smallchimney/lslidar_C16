@@ -60,18 +60,17 @@ private:
     int getPacket(lslidar_c16_msgs::LslidarC16PacketPtr& msg);
 
     // Ethernet relate variables
-    std::string device_ip_string;
+    std::string lidar_ip_string;
     std::string group_ip_string;
-    in_addr device_ip;
+    in_addr lidar_ip;
     int UDP_PORT_NUMBER;
     int socket_id;
     int cnt_gps_ts;
     bool use_gps_;
+	bool add_multicast;
     // ROS related variables
     ros::NodeHandle nh;
     ros::NodeHandle pnh;
-
-    std::string frame_id;
     ros::Publisher packet_pub;    
 
     // Diagnostics updater

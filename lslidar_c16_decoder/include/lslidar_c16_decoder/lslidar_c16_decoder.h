@@ -153,8 +153,6 @@ private:
         RawBlock blocks[BLOCKS_PER_PACKET];
         uint32_t time_stamp;
         uint8_t factory[2];
-        //uint16_t revolution;
-        //uint8_t status[PACKET_STATUS_SIZE];
     };
 
     struct Firing {
@@ -209,7 +207,7 @@ private:
     double frequency;
     bool publish_point_cloud;
     bool use_gps_ts;
-    bool publish_channels;
+    bool publish_scan;
     bool apollo_interface;
     double cos_azimuth_table[6300];
     double sin_azimuth_table[6300];
@@ -225,8 +223,8 @@ private:
     ros::NodeHandle nh;
     ros::NodeHandle pnh;
 
-    std::string fixed_frame_id;
-    std::string child_frame_id;
+    //std::string fixed_frame_id;
+    std::string frame_id;
 
     lslidar_c16_msgs::LslidarC16SweepPtr sweep_data;
     lslidar_c16_msgs::LslidarC16LayerPtr multi_scan;

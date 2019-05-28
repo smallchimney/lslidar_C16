@@ -55,14 +55,21 @@ bool LslidarC16Decoder::loadParameters() {
     ROS_WARN("switch angle from %2.2f to %2.2f in left hand rule", angle3_disable_min, angle3_disable_max);
     pnh.param<double>("frequency", frequency, 20.0);
     pnh.param<bool>("publish_point_cloud", publish_point_cloud, true);
-    pnh.param<bool>("publish_channels", publish_channels, true);
+    pnh.param<bool>("publish_scan", publish_scan, false);
     pnh.param<bool>("apollo_interface", apollo_interface, false);
-    pnh.param<string>("fixed_frame_id", fixed_frame_id, "map");
-    pnh.param<string>("child_frame_id", child_frame_id, "lslidar");
+    //pnh.param<string>("fixed_frame_id", fixed_frame_id, "map");
+    pnh.param<string>("frame_id", frame_id, "lslidar");
 
     pnh.param<bool>("use_gps_ts", use_gps_ts, false);
     ROS_WARN("Using GPS timestamp or not %d", use_gps_ts);
     angle_base = M_PI*2 / point_num;
+
+    if (publish_scan)
+    {
+        ROS_INFO("require to publish scan type message");
+    } else{
+        ROS_WARN("scan message not publish");
+    }
 
     if (apollo_interface)
         ROS_WARN("This is apollo interface mode");
@@ -128,7 +135,7 @@ void LslidarC16Decoder::publishPointCloud() {
 //    VPointCloud::Ptr point_cloud(new VPointCloud());
     pcl::PointCloud<pcl::PointXYZI>::Ptr point_cloud(new pcl::PointCloud<pcl::PointXYZI>);
             // pcl_conversions::toPCL(sweep_data->header).stamp;
-    point_cloud->header.frame_id = child_frame_id;
+    point_cloud->header.frame_id = frame_id;
     point_cloud->height = 1;
 
     for (size_t i = 0; i < 16; ++i) {
@@ -174,7 +181,7 @@ void LslidarC16Decoder::publishPointCloud() {
 //                 new pcl::PointCloud<pcl::PointXYZIT>());
 //     point_cloud->header.stamp =
 //             pcl_conversions::toPCL(sweep_data->header).stamp;
-//     point_cloud->header.frame_id = child_frame_id;
+//     point_cloud->header.frame_id = frame_id;
 //     point_cloud->height = 1;
 
 //     for (size_t i = 0; i < 16; ++i) {
@@ -220,7 +227,7 @@ void LslidarC16Decoder::publishChannelScan()
 
     for (uint16_t j=0; j<16; j++)
     {
-    scan.header.frame_id = child_frame_id;
+    scan.header.frame_id = frame_id;
     scan.header.stamp = sweep_data->header.stamp;
 
     scan.angle_min = 0.0;
@@ -238,7 +245,12 @@ void LslidarC16Decoder::publishChannelScan()
 
     for(uint16_t i = 0; i < sweep_data->scans[j].points.size(); i++)
     {
-        int point_idx = sweep_data->scans[j].points[i].azimuth / angle_base;
+        double point_azimuth = sweep_data->scans[j].points[i].azimuth;
+        int point_idx = point_azimuth / angle_base;
+        if (fmod(point_azimuth, angle_base) > (angle_base/2.0))
+        {
+            point_idx ++;
+        }
 
         if (point_idx >= point_num)
             point_idx = 0;
@@ -273,7 +285,7 @@ void LslidarC16Decoder::publishScan()
     if(sweep_data->scans[layer_num_local].points.size() <= 1)
         return;
 
-    scan->header.frame_id = child_frame_id;
+    scan->header.frame_id = frame_id;
     scan->header.stamp = sweep_data->header.stamp;
 
     scan->angle_min = 0.0;
@@ -291,7 +303,15 @@ void LslidarC16Decoder::publishScan()
 
     for(uint16_t i = 0; i < sweep_data->scans[layer_num_local].points.size(); i++)
     {
-        int point_idx = sweep_data->scans[layer_num_local].points[i].azimuth / angle_base;
+        double point_azimuth = sweep_data->scans[layer_num_local].points[i].azimuth;
+        int point_idx = point_azimuth / angle_base;
+//        printf("azi %f, point idx %d\t", point_azimuth, point_idx);
+        if (fmod(point_azimuth, angle_base) > (angle_base/2.0))
+        {
+            point_idx ++;
+//            printf("\t new idx %d", point_idx);
+        }
+        printf("\n");
 
         if (point_idx >= point_num)
             point_idx = 0;
@@ -548,13 +568,16 @@ void LslidarC16Decoder::packetCallback(
 
         sweep_pub.publish(sweep_data);
 
-        if (publish_point_cloud) publishPointCloud();
-        
-        if (publish_channels)
-            publishChannelScan();
-        else{
-            publishScan();
-        }
+        if (publish_point_cloud){
+			publishPointCloud();
+		}
+        if (publish_scan){
+			publishScan();
+           // publishChannelScan();
+		}
+       // else{
+        //    publishScan();
+       // }
 
         sweep_data = lslidar_c16_msgs::LslidarC16SweepPtr(
                     new lslidar_c16_msgs::LslidarC16Sweep());

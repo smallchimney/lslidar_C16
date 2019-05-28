@@ -47,13 +47,14 @@ LslidarC16Driver::~LslidarC16Driver() {
 
 bool LslidarC16Driver::loadParameters() {
 
-  pnh.param("frame_id", frame_id, std::string("lslidar"));
-  pnh.param("device_ip", device_ip_string, std::string("192.168.1.222"));
-  pnh.param<int>("device_port", UDP_PORT_NUMBER, 2368);
+  //pnh.param("frame_id", frame_id, std::string("lslidar"));
+  pnh.param("lidar_ip", lidar_ip_string, std::string("192.168.1.222"));
+  pnh.param<int>("device_port", UDP_PORT_NUMBER,2368);
+  pnh.param<bool>("add_multicast", add_multicast, false);
   pnh.param("group_ip", group_ip_string, std::string("234.2.3.2"));
-  inet_aton(device_ip_string.c_str(), &device_ip);
-  ROS_INFO_STREAM("Opening UDP socket: address " << device_ip_string);
-  ROS_INFO_STREAM("Opening UDP socket: group_address " << group_ip_string);
+  inet_aton(lidar_ip_string.c_str(), &lidar_ip);
+  ROS_INFO_STREAM("Opening UDP socket: address " << lidar_ip_string);
+  if(add_multicast) ROS_INFO_STREAM("Opening UDP socket: group_address " << group_ip_string);
   ROS_INFO_STREAM("Opening UDP socket: port " << UDP_PORT_NUMBER);
   return true;
 }
@@ -102,15 +103,17 @@ bool LslidarC16Driver::openUDPPort() {
         return false;
     }
     //add multicast
-    ip_mreq groupcast;
-    groupcast.imr_interface.s_addr=INADDR_ANY;
-    groupcast.imr_multiaddr.s_addr=inet_addr(group_ip_string.c_str());
+	if(add_multicast){
+       ip_mreq groupcast;
+       groupcast.imr_interface.s_addr=INADDR_ANY;
+       groupcast.imr_multiaddr.s_addr=inet_addr(group_ip_string.c_str());
     
-    if(setsockopt(socket_id,IPPROTO_IP,IP_ADD_MEMBERSHIP,(char*)&groupcast,sizeof(groupcast))<0) {
-        perror("set multicast error");
-        close(socket_id);
-        return false;
-    }
+       if(setsockopt(socket_id,IPPROTO_IP,IP_ADD_MEMBERSHIP,(char*)&groupcast,sizeof(groupcast))<0) {
+          perror("set multicast error");
+          close(socket_id);
+          return false;
+       }
+	}
     if (fcntl(socket_id, F_SETFL, O_NONBLOCK|FASYNC) < 0) {
         perror("non-block");
         return false;
@@ -218,7 +221,7 @@ int LslidarC16Driver::getPacket(
             // read successful,
             // if packet is not from the lidar scanner we selected by IP,
             // continue otherwise we are done
-            if( device_ip_string != "" && sender_address.sin_addr.s_addr != device_ip.s_addr )
+            if( lidar_ip_string != "" && sender_address.sin_addr.s_addr != lidar_ip.s_addr )
                 continue;
             else
                 break; //done
@@ -341,7 +344,7 @@ void LslidarC16Driver::getFPGA_GPSTimeStamp(lslidar_c16_msgs::LslidarC16PacketPt
         {
             GPS_ts = GPSStableTS;
 
-            ROS_DEBUG("This is step time, using new GPS ts %lu", GPS_ts);
+           // ROS_DEBUG("This is step time, using new GPS ts %lu", GPS_ts);
         }
 
         last_FPGA_ts = packet_timestamp;
