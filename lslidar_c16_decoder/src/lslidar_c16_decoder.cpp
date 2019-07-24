@@ -311,7 +311,7 @@ void LslidarC16Decoder::publishScan()
             point_idx ++;
 //            printf("\t new idx %d", point_idx);
         }
-        printf("\n");
+//        printf("\n");
 
         if (point_idx >= point_num)
             point_idx = 0;
