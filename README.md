@@ -42,7 +42,7 @@ Each message corresponds to a lslidar packet sent by the device through the Ethe
 
 ## lslidar_c16_decoder
 
-## Parameters
+### Parameters
 
 - `min_range` (`double`, `0.15`)
 
@@ -57,13 +57,7 @@ If set to true, the decoder will send out a full revolution point cloud data
 
 - `use_gps_ts` (`bool`, `false`)
 If set to true, the decoder synchronized with GPS timestamp
-## Published Topics
 
-- `lslidar_sweep` (`lslidar_c16_msgs/LslidarC16Sweep`)
-The message arranges the points within each sweep based on its scan index and azimuth.
-
-- `lslidar_point_cloud` (`sensor_msgs/PointCloud2`)
-This is only published when the `publish_point_cloud` is set to `true` in the launch file.
 
 - `angle3_disable_min` (`double`, `-1`)
 Ignore 3D point cloud data from angle3_disable_min to angle3_disable_max; Default -1 means disable this function; Value should from 0 to 2*pi
@@ -72,6 +66,18 @@ Ignore 3D point cloud data from angle3_disable_min to angle3_disable_max; Defaul
 Ignore 3D point cloud data from angle3_disable_min to angle3_disable_max; Default -1 means disable this function; Value should from 0 to 2*pi
 
 
+### Published Topics
+
+- `lslidar_sweep` (`lslidar_c16_msgs/LslidarC16Sweep`)
+The message arranges the points within each sweep based on its scan index and azimuth.
+
+- `lslidar_point_cloud` (`sensor_msgs/PointCloud2`)
+This is only published when the `publish_point_cloud` is set to `true` in the launch file.
+
+### Subscribed Topics
+
+- `lslidar_packets` (`lslidar_c16_msgs/LslidarC16Packet`)
+Each message corresponds to a lslidar packet sent by the device through the Ethernet.
 
 # Usage
 Before running lslidar-c16 driver, make sure you set up IP address correctly.
